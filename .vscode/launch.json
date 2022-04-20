@@ -1,0 +1,97 @@
+{
+    // 使用 IntelliSense 了解相关属性。 
+    // 悬停以查看现有属性的描述。
+    // 欲了解更多信息，请访问: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "os 启动",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "qemu-system-riscv64.exe",
+            "args": [
+                "-machine",
+                "virt",
+                "-nographic",
+                "-no-reboot",
+                "-bios",
+                "default",
+                "-device","loader,file=${workspaceFolder}/os/target/riscv64gc-unknown-none-elf/release/os,addr=0x80200000",
+                "-device","loader,file=${workspaceFolder}/tiny_kernel/target/riscv64gc-unknown-none-elf/debug/tiny_kernel.bin,addr=0x87000000",
+                "-drive","file=${workspaceFolder}/user/target/riscv64gc-unknown-none-elf/release/fs.img,if=none,format=raw,id=x0",
+                "-device", "virtio-blk-device,drive=x0,bus=virtio-mmio-bus.0",
+                "-s",
+                "-S"
+            ],
+            "preLaunchTask": "tiny_kernel",
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": true,
+            "setupCommands": [
+                {
+                    "description": "为 gdb 启用整齐打印",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "kernel-debug",
+            "type": "cppdbg",
+            "request": "launch",
+            "miDebuggerServerAddress": "127.0.0.1:1234",
+            "miDebuggerPath": "D:/riscv64-unknown-elf-gcc-w64/bin/riscv64-unknown-elf-gdb.exe",
+            "program": "${workspaceFolder}/os/target/riscv64gc-unknown-none-elf/release/os",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "logging": {
+                "engineLogging": false
+            },
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Add gdbinit",
+                    "text": "-interpreter-exec console \"source -v D:/async_os/.gdbinit\""
+                }
+            ]
+        },
+                {
+                    "name": "os",
+                    "type": "cppvsdbg",
+                    "request": "launch",
+                    "program": "qemu-system-riscv64.exe",
+                    "args": [
+                        "-machine",
+                        "virt",
+                        "-nographic",
+                        "-no-reboot",
+                        "-bios",
+                        "default",
+                        "-device",
+                        "loader,file=${workspaceFolder}/os/target/riscv64gc-unknown-none-elf/release/os,addr=0x80200000",
+                        "-device",
+                        "loader,file=${workspaceFolder}/tiny_kernel/target/riscv64gc-unknown-none-elf/debug/tiny_kernel.bin,addr=0x87000000",
+                        "-drive",
+                        "file=${workspaceFolder}/user/target/riscv64gc-unknown-none-elf/release/fs.img,if=none,format=raw,id=x0",
+                        "-device",
+                        "virtio-blk-device,drive=x0,bus=virtio-mmio-bus.0",
+                    ],
+                    "preLaunchTask": "tiny_kernel",
+                    "stopAtEntry": false,
+                    "cwd": "${workspaceFolder}",
+                    "environment": [],
+                    "externalConsole": true,
+                    "setupCommands": [
+                        {
+                            "description": "为 gdb 启用整齐打印",
+                            "text": "-enable-pretty-printing",
+                            "ignoreFailures": true
+                        }
+                    ]
+                },
+    ]
+}

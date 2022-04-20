@@ -1,0 +1,82 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "(Windows) 启动",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "qemu-system-riscv64.exe",
+            "args": [
+                "-machine",
+                "virt",
+                "-nographic",
+                "-no-reboot",
+                "-bios",
+                "D:/z/2/new/c//bootloader/rustsbi-qemu.bin",
+                "-device",
+                "loader,file=${workspaceFolder}/target/riscv64gc-unknown-none-elf/debug/os,addr=0x80200000",
+                "-device",
+                "loader,file=D:/z/2/new/c/basic_rt/target/riscv64gc-unknown-none-elf/debug/basic_rt.bin,addr=0x87000000",
+                "-drive",
+                "file=D:/z/2/new/c/user/target/riscv64gc-unknown-none-elf/release/fs.img,if=none,format=raw,id=x0",
+                "-device",
+                "virtio-blk-device,drive=x0,bus=virtio-mmio-bus.0",
+                "-s",
+                "-S"
+            ],
+            // "preLaunchTask": "copy",
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+        },
+        {
+            "name": "kernel-debug",
+            "type": "cppdbg",
+            "request": "launch",
+            "miDebuggerServerAddress": "127.0.0.1:1234",
+            "miDebuggerPath": "D:/riscv64-unknown-elf-gcc-w64/bin/riscv64-unknown-elf-gdb.exe",
+            "program": "${workspaceFolder}/target/riscv64gc-unknown-none-elf/debug/os",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "logging": {
+                "engineLogging": false
+            },
+            "MIMode": "gdb",
+            // "setupCommands": [
+            //     {
+            //         "description": "Add gdbinit",
+            //         "text": "-interpreter-exec console \"source -v D:/z/2/new/c/os/.gdbinit\""
+            //     }
+            // ]
+        },
+        {
+            "name": "(Windows)",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "qemu-system-riscv64.exe",
+            "args": [
+                "-machine",
+                "virt",
+                "-nographic",
+                "-no-reboot",
+                "-bios",
+                "D:/z/2/new/c//bootloader/rustsbi-qemu.bin",
+                "-device",
+                "loader,file=${workspaceFolder}/target/riscv64gc-unknown-none-elf/debug/os,addr=0x80200000",
+                "-device",
+                "loader,file=D:/z/2/new/c/basic_rt/target/riscv64gc-unknown-none-elf/debug/basic_rt.bin,addr=0x87000000",
+                "-drive" ,"file=D:/z/2/new/c/user/target/riscv64gc-unknown-none-elf/release/fs.img,if=none,format=raw,id=x0",
+                "-device", "virtio-blk-device,drive=x0,bus=virtio-mmio-bus.0"
+            ],
+            // "preLaunchTask": "copy",
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+        },
+    ]
+}

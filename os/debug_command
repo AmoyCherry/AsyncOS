@@ -1,0 +1,16 @@
+riscv64-unknown-elf-gdb.exe -x .\.gdbinit_debug
+
+riscv64-unknown-elf-gdb.exe -x .\.gdbinit_release
+
+riscv64-unknown-elf-objdump -S .\target\riscv64gc-unknown-none-elf\debug\os > 1.debug
+riscv64-unknown-elf-objdump -S .\target\riscv64gc-unknown-none-elf\release\os > 1.release
+
+# gdb显示物理内存
+maintenance packet Qqemu.PhyMemMode:1
+
+#某行处断点
+x/20xg 0xfffffffffffff056
+
+x/100i $*0xfffffffffffff016
+
+p/x $satp
