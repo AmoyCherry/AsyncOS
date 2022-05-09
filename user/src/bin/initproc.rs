@@ -6,9 +6,13 @@ extern crate user_lib;
 
 extern crate alloc;
 
+/// Line Feed 换行
 const LF: u8 = 0x0au8;
+/// Carriage Return 回车
 const CR: u8 = 0x0du8;
+/// DEL
 const DL: u8 = 0x7fu8;
+/// Backspace
 const BS: u8 = 0x08u8;
 
 use alloc::string::String;
@@ -16,18 +20,20 @@ use alloc::vec::Vec;
 use user_lib::console::getchar;
 use user_lib::{close, dup, exec, fork, open, waitpid, OpenFlags};
 
+
+
 #[no_mangle]
 pub fn main() -> i32 {
     println!("Rust user shell");
     let mut line: String = String::new();
     print!(">> ");
-    return 0;
     loop {
         let c = getchar();
         match c {
             LF | CR => {
                 println!("");
                 if !line.is_empty() {
+                    // 按空格分割 line, 得到的单词装进 args_copy
                     let args: Vec<_> = line.as_str().split(' ').collect();
                     let mut args_copy: Vec<String> = args
                         .iter()
@@ -37,10 +43,21 @@ pub fn main() -> i32 {
                             string
                         })
                         .collect();
-
+                    // 每个单词末尾插入 \0
                     args_copy.iter_mut().for_each(|string| {
                         string.push('\0');
                     });
+
+    
+                    if args_copy.len() == 3 { 
+                        println!("exit mmmmmmain");
+                        return 0; 
+                    }
+                    else { 
+                        line.clear();
+                        print!(">> ");
+                        continue; 
+                    }
 
                     // redirect input
                     let mut input = String::new();
@@ -106,7 +123,7 @@ pub fn main() -> i32 {
                         assert_eq!(pid, exit_pid);
                         println!("Shell: Process {} exited with code {}", pid, exit_code);
                     }
-                    line.clear();
+                    //line.clear();
                 }
                 print!(">> ");
             }
@@ -124,4 +141,6 @@ pub fn main() -> i32 {
             }
         }
     }
+
+    0
 }

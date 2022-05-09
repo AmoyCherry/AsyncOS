@@ -68,7 +68,7 @@ pub fn rust_main(hart_id: usize) -> ! {
         fs::list_apps();
         // test_for_kernel(0);
         debug!("trying to add user test");
-        // task::add_initproc();
+        //task::add_initproc();
         task::add_user_test();
 
         send_ipi();
@@ -119,7 +119,7 @@ pub fn others_main(){
 
 pub fn send_ipi(){
     let hart_id = hart_id();
-    for i in 1..1 {
+    for i in 1..2 {
         debug!("[hart {}] Start hart[{}]", hart_id, i);
         let mask: usize = 1 << i;
         sbi::send_ipi(&mask as *const _ as usize);

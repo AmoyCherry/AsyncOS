@@ -81,7 +81,8 @@ pub fn update_bitmap(){
     for i in 1..=PROCESS_NUM {
         let user_bitmap = unsafe { &*( (start_addr + PAGE_SIZE*i) as *const BitMap) };
 
-        debug!("update, [space {}] bitmap:    {:#b}",i, user_bitmap.0);
+        //debug!("[hart {}] update, [space {}] bitmap:    {:#b}",hart_id(), i, user_bitmap.0);
+        //println!("[hart {}] update, [space {}] bitmap:    {:#b}",hart_id(), i, user_bitmap.0);
         u_maps.push(user_bitmap.0);
         ans = (ans | user_bitmap.0);
     }
@@ -90,7 +91,7 @@ pub fn update_bitmap(){
     PRIO_PIDS.lock().clear();
     for i in 1..=PROCESS_NUM {
         if (u_maps[i] & mask) != 0 { 
-            debug!("PRIO_PIDS push: {}", i);
+            //debug!("PRIO_PIDS push: {}", i);
             PRIO_PIDS.lock().insert(i); 
         }
     }
@@ -99,8 +100,17 @@ pub fn update_bitmap(){
         // 要依靠裸指针修改内存值, 必须使用这种写法
         let sys_bitmap = &mut *(SYS_BITMAP_VA as *mut BitMap);
         sys_bitmap.0 = ans;
-        debug!("hard [{}] update bitmap :    {:#b}", crate::hart_id(), sys_bitmap.0);
+        //debug!("[hart {}] hard [{}] update bitmap :     {:#b}", hart_id(), crate::hart_id(), sys_bitmap.0);
     }
+}
+
+
+pub fn hart_id() -> usize {
+    let hart_id: usize;
+    unsafe {
+        asm!("mv {}, tp", out(reg) hart_id);
+    }
+    hart_id
 }
 
 

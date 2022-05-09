@@ -25,13 +25,13 @@ impl Thread {
             }
         }
     }
-    pub fn new_thread(entry: usize, arg: usize) -> Thread {
+    pub fn new_thread(entry: usize, space_id: usize) -> Thread {
         unsafe {
             let ustack_ = UserStack::new();
             Thread {
-                context: Context::new_thread_context(entry, arg, ustack_.top()),
+                context: Context::new_thread_context(entry, space_id, ustack_.top()),
                 ustack: ustack_,
-                space_id: arg
+                space_id: space_id
             }
         }
     }

@@ -14,10 +14,10 @@ impl Context {
 
     pub unsafe fn new_thread_context(
         entry: usize,
-        arg: usize,
+        space_id: usize,
         ustack_top: usize,
     ) -> Context {
-        ContextContent::new_thread_content(entry, arg, ustack_top).push_at(ustack_top)
+        ContextContent::new_thread_content(entry, space_id, ustack_top).push_at(ustack_top)
     }
 
     #[naked]
@@ -51,10 +51,10 @@ pub struct ContextContent {
 
 impl ContextContent {
 
-    fn new_thread_content(entry: usize, arg: usize , ustack_top: usize) -> ContextContent {
+    fn new_thread_content(entry: usize, space_id: usize , ustack_top: usize) -> ContextContent {
         let mut content: ContextContent = ContextContent::default();
         content.ra = entry as usize;
-        content.s[0] = arg;
+        content.s[0] = space_id;
         content
     }
 

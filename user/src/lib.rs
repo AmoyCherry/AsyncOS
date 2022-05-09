@@ -11,6 +11,7 @@
 
 #[macro_use]
 pub mod console;
+pub mod test_lib;
 
 mod syscall;
 mod lang_items;
@@ -82,9 +83,11 @@ bitflags! {
 }
 
 pub fn dup(fd: usize) -> isize { sys_dup(fd) }
+/// return fd
 pub fn open(path: &str, flags: OpenFlags) -> isize { sys_open(path, flags.bits) }
 pub fn close(fd: usize) -> isize { sys_close(fd) }
 pub fn pipe(pipe_fd: &mut [usize]) -> isize { sys_pipe(pipe_fd) }
+/// read the file with fd
 pub fn read(fd: usize, buf: &mut [u8]) -> isize { sys_read(fd, buf) }
 pub fn write(fd: usize, buf: &[u8]) -> isize { sys_write(fd, buf) }
 pub fn exit(exit_code: i32) -> ! { sys_exit(exit_code); }
@@ -124,4 +127,7 @@ pub fn get_symbol_addr(name: &str) -> usize{
 
     sys_get_symbol_addr(name) as usize
 }
+
+
+
 

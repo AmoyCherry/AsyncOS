@@ -13,11 +13,11 @@ extern crate alloc;
 #[no_mangle]
 pub fn main() -> i32 {
 
-    println!("[user1] Hello world from user mode program!");
+    println!("[user1] main: Hello world from user mode program!");
 
     test_for_user();
 
-    println!("[user1] end");
+    println!("[user1] main: end");
 
     0
 }
@@ -82,17 +82,26 @@ pub fn test_for_user(){
         init_cpu();
 
         async fn test(x: i32) {
-            let test_inner = async { println!("[hart {}] [user1] {}, await done", hart_id(), x); };
+            let test_inner = async { 
+                let mut c: usize = 0;
+                for i in 0..1000_000_000 {
+                    c += i % 6;
+                }
+                println!("[hart {}] [user1] calc plus, sum = {}", hart_id(), c);
+            };
             test_inner.await;
+            println!("[hart {}] [user1] await done", hart_id()); 
         }
         add_task_with_priority(Box::pin(test(666)), 0);
         // println!("test task addr :{:#x?}", test as usize);
         // println!("add_task");
 
+        // 低优先级协程执行时添加一个较高优先级协程
+
         async fn test_num(x: i32, addr: usize) {
             async fn test1(y: i32) {
                 println!("[hart {}] [user1] {}, add this coroutine in a coroutine", hart_id(), y);
-            };
+            }
             let add_task_with_priority : fn(future: Pin<Box<dyn Future<Output=()> + 'static + Send + Sync>> , usize) -> () = unsafe {
                 core::mem::transmute(addr as usize)
             };
@@ -104,7 +113,15 @@ pub fn test_for_user(){
         for i in 0..5{
             add_task_with_priority(Box::pin(test_num(i, add_user_task_with_priority_addr)), 5 - (i as usize));
         }
-        
+        // read file, path must be end with '\0'
+        async fn read_file() {
+            let fd = open("data\0", OpenFlags::RDONLY);
+            let mut buffer = [0u8;64];
+            read(fd as usize, &mut buffer);
+            println!("buffer : {:?}", buffer);
+            close(fd as usize);
+        }
+        add_task_with_priority(Box::pin(read_file()), 0);
 
         // println!("cpu_run");
         cpu_run();

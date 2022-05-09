@@ -6,6 +6,7 @@ use super::add_task;
 
 use alloc::sync::Arc;
 use alloc::vec::Vec;
+use spin::Mutex;
 use core::cell::RefCell;
 use crate::trap::TrapContext;
 use crate::config::CPU_NUM;
@@ -101,6 +102,7 @@ impl Processor {
 
     #[no_mangle]
     pub fn run(&self) {
+        static CNT: Mutex<usize> = Mutex::new(0);
         loop {
             let task = fetch_task();
                 
@@ -113,11 +115,13 @@ impl Processor {
 
                     }
                     None => {
-                        info!("all user process finished!");
-                        break;
-                        // panic!("");
-                        //super::add_user_shell();
-                        // super::add_initproc();
+                        //info!("all user process finished!");
+                        
+                        /* let c = *CNT.lock();
+                        if c == 0 {
+                            *CNT.lock() += 1;
+                            super::add_initproc();
+                        } */
                     }
                 }
         }

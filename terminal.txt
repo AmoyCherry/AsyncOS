@@ -1,0 +1,253 @@
+>>>> will switch_to thread 0 in idle_main!
+[hart 1[hart 1] update, [space 1] bitmap:    0b0
+[hart 1] update, [space 2] bitmap:    0b0
+[hart 1] update, [space 3] bitmap:    0b111110
+[hart 1] update, [space 4] bitmap:    0b0
+[hart 1] update, [space 5] bitmap:    0b0
+[hart 1] update, [space 6] bitmap:    0b0
+[hart 1] update, [space 7] bitmap:    0b0
+[hart 1] update, [space 8] bitmap:    0b0
+PRIO_PIDS push: 3
+[hart 1] hard [1] update bitmap :    0b111110
+] [user3] 666, await done
+[hart 1] update, [space 1] bitmap:    0b0
+[hart 1] update, [space 2] bitmap:    0b0
+[hart 1] update, [space 3] bitmap:    0b111110
+[hart 1] update, [space 4] bitmap:    0b0
+[hart 1] update, [space 5] bitmap:    0b0
+[hart 1] update, [space 6] bitmap:    0b0
+[hart 1] update, [space 7] bitmap:    0b0
+[hart 1] update, [space 8] bitmap:    0b0
+PRIO_PIDS push: 3
+[hart 1] hard [1] update bitmap :    0b111110
+[hart 1] [user3] 4
+[kernel] yield, suspend current and run next
+[hart 1] update, [space 1] bitmap:    0b0
+[hart 1] update, [space 2] bitmap:    0b0
+[hart 1] update, [space 3] bitmap:    0b111100
+[hart 1] update, [space 4] bitmap:    0b0
+[hart 1] update, [space 5] bitmap:    0b0
+[hart 1] update, [space 6] bitmap:    0b0
+[hart 1] update, [space 7] bitmap:    0b0
+[hart 1] update, [space 8] bitmap:    0b0
+PRIO_PIDS push: 3
+[hart 1] hard [1] update bitmap :    0b111100
+[hart 1] [user3] 3
+[kernel] yield, suspend current and run next
+
+>>>> will switch_to thread 0 in idle_main!
+[hart 1] update, [space 1] bitmap:    0b0
+[hart 1] update, [space 2] bitmap:    0b111110
+[hart 1] update, [space 3] bitmap:    0b111000
+[hart 1] update, [space 4] bitmap:    0b0
+[hart 1] update, [space 5] bitmap:    0b0
+[hart 1] update, [space 6] bitmap:    0b0
+[hart 1] update, [space 7] bitmap:    0b0
+[hart 1] update, [space 8] bitmap:    0b0
+PRIO_PIDS push: 2
+[hart 1] hard [1] update bitmap :    0b111110
+[hart 1] [user2] 666, await done
+[hart 1] [user2] 4
+[kernel] yield, suspend current and run next
+[hart 1] update, [space 1] bitmap:    0b0
+[hart 1] update, [space 2] bitmap:    0b111100
+[hart 1] update, [space 3] bitmap:    0b111000
+[hart 1] update, [space 4] bitmap:    0b0
+[hart 1] update, [space 5] bitmap:    0b0
+[hart 1] update, [space 6] bitmap:    0b0
+[hart 1] update, [space 7] bitmap:    0b0
+[hart 1] update, [space 8] bitmap:    0b0
+PRIO_PIDS push: 2
+[hart 1] hard [1] update bitmap :    0b111100
+[hart 1] [user2] 3
+[kernel] yield, suspend current and run next
+[hart 1] update, [space 1] bitmap:    0b0
+[hart 1] update, [space 2] bitmap:    0b111000
+[hart 1] update, [space 3] bitmap:    0b111000
+[hart 1] update, [space 4] bitmap:    0b0
+[hart 1] update, [space 5] bitmap:    0b0
+[hart 1] update, [space 6] bitmap:    0b0
+[hart 1] update, [space 7] bitmap:    0b0
+[hart 1] update, [space 8] bitmap:    0b0
+PRIO_PIDS push: 2
+PRIO_PIDS push: 3
+[hart 1] hard [1] update bitmap :    0b111000
+[hart 1] [user3] 2
+[kernel] yield, suspend current and run next
+[hart 1] [user2] 2
+[kernel] yield, suspend current and run next
+[hart 1] update, [space 1] bitmap:    0b111111
+[hart 1] update, [space 2] bitmap:    0b110000
+[hart 1] update, [space 3] bitmap:    0b110000
+[hart 1] update, [space 4] bitmap:    0b0
+[hart 1] update, [space 5] bitmap:    0b0
+[hart 1] update, [space 6] bitmap:    0b0
+[hart 1] update, [space 7] bitmap:    0b0
+[hart 1] update, [space 8] bitmap:    0b0
+PRIO_PIDS push: 1
+[hart 1] hard [1] update bitmap :    0b111111
+
+>>>> will switch_to thread 0 in idle_main!
+[hart 1] [user1] 666, await done
+[kernel] yield, suspend current and run next
+[hart 1] [user3] 1
+[kernel] yield, suspend current and run next
+[hart 1] [user2] 1
+[kernel] yield, suspend current and run next
+[hart 1] update, [space 1] bitmap:    0b111110
+[hart 1] update, [space 2] bitmap:    0b100000
+[hart 1] update, [space 3] bitmap:    0b100000
+[hart 1] update, [space 4] bitmap:    0b0
+[hart 1] update, [space 5] bitmap:    0b0
+[hart 1] update, [space 6] bitmap:    0b0
+[hart 1] update, [space 7] bitmap:    0b0
+[hart 1] update, [space 8] bitmap:    0b0
+PRIO_PIDS push: 1
+[hart 1] hard [1] update bitmap :    0b111110
+[hart 1] [user1] 4
+[hart 1] [user1] 4, add this coroutine in a coroutine
+[kernel] yield, suspend current and run next
+[hart 1] [user3] 0
+[kernel] yield, suspend current and run next
+[hart 1] [user2] 0
+[kernel] yield, suspend current and run next
+[hart 1] [user1] 3
+[kernel] yield, suspend current and run next
+no task
+user exit
+[hart 0] update, [space 1] bitmap:    0b111100
+[hart 0] update, [space 2] bitmap:    0b0
+[hart 0] update, [space 3] bitmap:    0b0
+[hart 0] update, [space 4] bitmap:    0b0
+[hart 0] update, [space 5] bitmap:    0b0
+[hart 0] update, [space 6] bitmap:    0b0
+[hart 0] update, [space 7] bitmap:    0b0
+[hart 0] update, [space 8] bitmap:    0b0
+PRIO_PIDS push: 1
+[hart 0] hard [0] update bitmap :    0b111100
+[hart 0] update, [space 1] bitmap:    0b111100
+[hart 0] update, [space 2] bitmap:    0b0
+[hart 0] update, [space 3] bitmap:    0b0
+[hart 0] update, [space 4] bitmap:    0b0
+[hart 0] update, [space 5] bitmap:    0b0
+[hart 0] update, [space 6] bitmap:    0b0
+[hart 0] update, [space 7] bitmap:    0b0
+[hart 0] update, [space 8] bitmap:    0b0
+PRIO_PIDS push: 1
+[hart 0] hard [0] update bitmap :    0b111100
+[hart 0] [user1] 3, add this coroutine in a coroutine
+[kernel] yield, suspend current and run next
+[hart 0] update, [space 1] bitmap:    0b111000
+[hart 0] update, [space 2] bitmap:    0b0
+[hart 0] update, [space 3] bitmap:    0b0
+[hart 0] update, [space 4] bitmap:    0b0
+[hart 0] update, [space 5] bitmap:    0b0
+[hart 0] update, [space 6] bitmap:    0b0
+[hart 0] update, [space 7] bitmap:    0b0
+[hart 0] update, [space 8] bitmap:    0b0
+PRIO_PIDS push: 1
+[hart 0] hard [0] update bitmap :    0b111000
+[hart 0] [user1] 2
+[hart 0] [user1] 2, add this coroutine in a coroutine
+[kernel] yield, suspend current and run next
+[hart 0] update, [space 1] bitmap:    0b110000
+[hart 0] update, [space 2] bitmap:    0b0
+[hart 0] update, [space 3] bitmap:    0b0
+[hart 0] update, [space 4] bitmap:    0b0
+[hart 0] update, [space 5] bitmap:    0b0
+[hart 0] update, [space 6] bitmap:    0b0
+[hart 0] update, [space 7] bitmap:    0b0
+[hart 0] update, [space 8] bitmap:    0b0
+PRIO_PIDS push: 1
+[hart 0] hard [0] update bitmap :    0b110000
+[hart [hart 0] update, [space 1] bitmap:    0b110000
+[hart 0] update, [space 2] bitmap:    0b0
+[hart 0] update, [space 3] bitmap:    0b0
+[hart 0] update, [space 4] bitmap:    0b0
+[hart 0] update, [space 5] bitmap:    0b0
+[hart 0] update, [space 6] bitmap:    0b0
+[hart 0] update, [space 7] bitmap:    0b0
+[hart 0] update, [space 8] bitmap:    0b0
+PRIO_PIDS push: 1
+[hart 0] hard [0] update bitmap :    0b110000
+0] [user1] 1
+[hart [hart 0] update, [space 1] bitmap:    0b100000
+[hart 0] update, [space 2] bitmap:    0b0
+[hart 0] update, [space 3] bitmap:    0b0
+[hart 0] update, [space 4] bitmap:    0b0
+[hart 0] update, [space 5] bitmap:    0b0
+[hart 0] update, [space 6] bitmap:    0b0
+[hart 0] update, [space 7] bitmap:    0b0
+[hart 0] update, [space 8] bitmap:    0b0
+PRIO_PIDS push: 1
+[hart 0] hard [0] update bitmap :    0b100000
+0] [user1] [hart 0] update, [space 1] bitmap:    0b100000
+[hart 0] update, [space 2] bitmap:    0b0
+[hart 0] update, [space 3] bitmap:    0b0
+[hart 0] update, [space 4] bitmap:    0b0
+[hart 0] update, [space 5] bitmap:    0b0
+[hart 0] update, [space 6] bitmap:    0b0
+[hart 0] update, [space 7] bitmap:    0b0
+[hart 0] update, [space 8] bitmap:    0b0
+PRIO_PIDS push: 1
+[hart 0] hard [0] update bitmap :    0b100000
+1, add this coroutine in a coroutine
+[hart 0] update, [space 1] bitmap:    0b100000
+[hart 0] update, [space 2] bitmap:    0b0
+[hart 0] update, [space 3] bitmap:    0b0
+[hart 0] update, [space 4] bitmap:    0b0
+[hart 0] update, [space 5] bitmap:    0b0
+[hart 0] update, [space 6] bitmap:    0b0
+[hart 0] update, [space 7] bitmap:    0b0
+[hart 0] update, [space 8] bitmap:    0b0
+PRIO_PIDS push: 1
+[hart 0] hard [0] update bitmap :    0b100000
+[hart 0] [user1] 0
+[hart 0] [user1] 0, add this coroutine in a coroutine
+[hart 0] update, [space 1] bitmap:    0b0
+[hart 0] update, [space 2] bitmap:    0b0
+[hart 0] update, [space 3] bitmap:    0b0
+[hart 0] update, [space 4] bitmap:    0b0
+[hart 0] update, [space 5] bitmap:    0b0
+[hart 0] update, [space 6] bitmap:    0b0
+[hart 0] update, [space 7] bitmap:    0b0
+[hart 0] update, [space 8] bitmap:    0b0
+[hart 0] hard [0] update bitmap :    0b0
+[hart 0] update, [space 1] bitmap:    0b0
+[hart 0] update, [space 2] bitmap:    0b0
+[hart 0] update, [space 3] bitmap:    0b0
+[hart 0] update, [space 4] bitmap:    0b0
+[hart 0] update, [space 5] bitmap:    0b0
+[hart 0] update, [space 6] bitmap:    0b0
+[hart 0] update, [space 7] bitmap:    0b0
+[hart 0] update, [space 8] bitmap:    0b0
+[hart 0] hard [0] update bitmap :    0b0
+no task
+user exit
+pid:0x5 bitmap pa:0x87405000
+exit_current_and_run_next schedule
+[hart 1] update, [space 1] bitmap:    0b0
+[hart 1] update, [space 2] bitmap:    0b0
+[hart 1] update, [space 3] bitmap:    0b0
+[hart 1] update, [space 4] bitmap:    0b0
+[hart 1] update, [space 5] bitmap:    0b0
+[hart 1] update, [space 6] bitmap:    0b0
+[hart 1] update, [space 7] bitmap:    0b0
+[hart 1] update, [space 8] bitmap:    0b0
+[hart 1] hard [1] update bitmap :    0b0
+exit_current_and_run_next schedule
+[hart 0] update, [space 1] bitmap:    0b0
+[hart 0] update, [space 2] bitmap:    0b0
+[hart 0] update, [space 3] bitmap:    0b0
+[hart 0] update, [space 4] bitmap:    0b0
+[hart 0] update, [space 5] bitmap:    0b0
+[hart 0] update, [space 6] bitmap:    0b0
+[hart 0] update, [space 7] bitmap:    0b0
+[hart 0] update, [space 8] bitmap:    0b0
+[hart 0] hard [0] update bitmap :    0b0
+no task
+user exit
+exit_current_and_run_next schedule
+all user process finished!
+[kernel] Panicked at src/main.rs:87 Unreachable in rust_main!
+root@VM-16-5-ubuntu:/home/backup/c-main# 

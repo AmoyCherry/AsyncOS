@@ -28,9 +28,9 @@ use thread_pool::ThreadPool;
 pub static CPU : Processor = Processor::new();
 
 
-use crate::task::thread_main;
+use crate::task::thread_main_ex;
 use crate::task::add_user_task_with_priority;
-use crate::println;
+use crate::{println};
 
 pub fn init() {
     // 使用 Fifo Scheduler
@@ -68,9 +68,10 @@ pub fn add_to_thread_pool(addr: usize, space_id:usize) {
 
 
 
+/// 在用户态程序中获取地址直接调用
 #[no_mangle]
-pub fn init_cpu_test(){
-    // println!("init_cpu_test");
+pub fn init_cpu_test() {
+    //println!("init_cpu_test");
     let scheduler = RRScheduler::new(50);
     
     // 新建线程池
@@ -79,73 +80,26 @@ pub fn init_cpu_test(){
     // 新建idle ，其入口为 Processor::idle_main
     let idle = Thread::new_box_thread(Processor::idle_main as usize, &CPU as *const Processor as usize);
 
-
+    //println!("[basic] init cpu test");
     CPU.init(idle, thread_pool);
-
+    // 初始化线程池时先创建一个线程, 启动线程执行器之后可以直接使用
     CPU.add_thread(
         {
-            let thread = Thread::new_box_thread(thread_main as usize, 1);
+            let thread = Thread::new_box_thread(thread_main_ex as usize, 1);
             thread
         }
     );
 
-    // println!("add thread_main done");
-
 }
 
+/// 启动协程执行器
+/// 
+/// 现阶段, 每个进程只使用一个线程工作, 所以此处的协程执行器直接作为函数调用
+/// 
+/// 未来的多线程的工作方式为: 调用函数idle_main, 在某些特定的条件之下, 如没有可用的线程, 但存在可以执行的协程, 
+/// 则可以创建线程去执行协程
 #[no_mangle]
 pub fn cpu_run(){
-    CPU.run();
+    thread_main_ex();
 }
 
-
-
-
-#[no_mangle]
-pub fn thread_init() {
-    println!("scheduler init");
-
-
-    let scheduler = RRScheduler::new(50);
-    
-    // 新建线程池
-    let thread_pool = Box::new(ThreadPool::new(10, scheduler));
-
-    // 新建idle ，其入口为 Processor::idle_main
-    let idle = Thread::new_box_thread(Processor::idle_main as usize, &CPU as *const Processor as usize);
-
-
-    CPU.init(idle, thread_pool);
-
-    CPU.add_thread(
-        {
-            let thread = Thread::new_box_thread(thread_main as usize, 1);
-            thread
-        }
-    );
-
-    println!("add thread_main done");
-    println!("add_task");
-    async fn foo_0(x:usize){
-        println!("priority 0 task --- {:?}", x);
-    }
-
-    async fn foo_1(x:usize){
-        println!("priority 1 task --- {:?}", x);
-    }
-
-    async fn foo_2(x:usize){
-        println!("priority 2 task --- {:?}", x);
-    }
-
-    add_user_task_with_priority(Box::pin(foo_0(666)), 0);
-    add_user_task_with_priority(Box::pin(foo_1(666)), 1);
-    add_user_task_with_priority(Box::pin(foo_2(666)), 2);
-
-    add_user_task_with_priority(Box::pin(foo_0(777)), 0);
-    add_user_task_with_priority(Box::pin(foo_1(777)), 1);
-    add_user_task_with_priority(Box::pin(foo_2(777)), 2);
-    
-    println!("scheduler cpu run");
-    CPU.run();
-}

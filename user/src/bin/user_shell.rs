@@ -29,7 +29,6 @@ pub fn main() -> i32 {
     println!("Rust user shell");
     let mut line: String = String::new();
     print!(">> ");
-    return 0;
     loop {
         let c = getchar();
         match c {

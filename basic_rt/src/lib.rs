@@ -1,3 +1,5 @@
+
+
 #![no_std]
 #![feature(llvm_asm)]
 #![feature(asm)]
@@ -27,6 +29,7 @@ extern crate alloc;
 pub extern "C" fn _start() -> ! {
 
     let mut space_id :usize;
+    println!("[basic_rt] lib start-----------------------------");
     // unsafe {
     //     HEAP.lock()
     //         .init(HEAP_SPACE.as_ptr() as usize, USER_HEAP_SIZE);
@@ -40,8 +43,8 @@ pub extern "C" fn _start() -> ! {
 #[linkage = "weak"]
 #[no_mangle]
 fn main() -> i32 {
+    println!("[basic_rt] lib main");
     crate::thread::init_cpu_test();
-    crate::thread::thread_init();
     panic!("Cannot find main!");
 }
 

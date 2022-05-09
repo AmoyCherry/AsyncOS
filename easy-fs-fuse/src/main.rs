@@ -2,6 +2,7 @@ use easy_fs::{
     BlockDevice,
     EasyFileSystem,
 };
+
 use std::fs::{File, OpenOptions, read_dir};
 use std::io::{Read, Write, Seek, SeekFrom};
 use std::sync::Mutex;
@@ -68,7 +69,7 @@ fn easy_fs_pack() -> std::io::Result<()> {
     let root_inode = Arc::new(EasyFileSystem::root_inode(&efs));
 
     println!("src_path :{:?}", src_path);
-
+    // 打包用户态程序
     let apps: Vec<_> = read_dir(src_path)
         .unwrap()
         .into_iter()
@@ -95,6 +96,12 @@ fn easy_fs_pack() -> std::io::Result<()> {
     let mut all_data: Vec<u8> = Vec::new();
     host_file.read_to_end(&mut all_data).unwrap();
     let inode = root_inode.create("basic_rt").unwrap();
+    inode.write_at(0, all_data.as_slice());
+
+    let mut test_file = File::open("../user/src/data.txt").unwrap();
+    let mut all_data: Vec<u8> = Vec::new();
+    test_file.read_to_end(&mut all_data).unwrap();
+    let inode = root_inode.create("data").unwrap();
     inode.write_at(0, all_data.as_slice());
 
     

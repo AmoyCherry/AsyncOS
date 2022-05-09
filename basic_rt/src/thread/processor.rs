@@ -8,10 +8,12 @@ use alloc::boxed::Box;
 //同时，也需要存放和管理目前正在执行的线程（即中断前执行的线程，因为操作系统在工作时是处于中断、异常或系统调用服务之中）。
 use super::Tid;
 
+use crate::CPU;
+use crate::EXCUTOR;
 use crate::println;
 
-use crate::task::USER_TASK_QUEUE;
-use crate::task::thread_main;
+//use crate::task::USER_TASK_QUEUE;
+use crate::task::thread_main_ex;
 
 unsafe impl Sync for Processor {}
 pub struct Processor {
@@ -19,6 +21,7 @@ pub struct Processor {
 }
 pub struct ProcessorInner {
     pub pool: Box<ThreadPool>,
+    // idle就是主线程
     idle: Box<Thread>,
     current: Option<(Tid, Box<Thread>)>,
 }
@@ -62,7 +65,7 @@ impl Processor {
         self.inner().pool.add(thread);
     }
 
-    pub fn idle_main(&self) -> ! {
+    pub fn idle_main(&self) {
         let inner = self.inner();
         loop {
             // 如果从线程池中获取到一个可运行线程
@@ -74,7 +77,7 @@ impl Processor {
                 // 从正在运行的线程 idle 切换到刚刚获取到的线程
                 println!("\n>>>> will switch_to thread {} in idle_main!", inner.current.as_mut().unwrap().0);
 
-                // 切换到刚刚获取到的线程
+                // 保存正在运行idle_main函数的这个线程上下文到idle
                 inner.idle.switch_to(
                     &mut *inner.current.as_mut().unwrap().1
                 );
@@ -91,25 +94,29 @@ impl Processor {
             // 如果现在并无任何可运行线程.则检查协程队列是否为空
             else {
 
-                let mut queue = USER_TASK_QUEUE.lock();
+                //let mut queue = USER_TASK_QUEUE.lock();
 
-                if queue.is_all_empty() {
+                if EXCUTOR.lock().is_empty() {
                     println!("finish task exit");
-                    crate::sys_exit(0);
+                    drop(EXCUTOR.lock());
+                    break;
                 } else {
-
+                    println!("[thread pool] coroutine not empty, creat thread");
                     //如果线程列表为空，但任务队列不空，创建一个线程
                     self.add_thread(        
                         {
-                            let thread = Thread::new_box_thread(crate::task::thread_main as usize, 1);
+                            let thread = Thread::new_box_thread(crate::task::thread_main_ex as usize, 1);
                             thread
                         }
                     )
                 }
-                drop(queue);
-                
             }
+
+            
+
         }
+        
+        //println!("[basic] exit idle");
     }
 
     pub fn tick(&self) {
@@ -139,7 +146,7 @@ impl Processor {
     }
 
 
-    pub fn exit(&self, code: usize) -> ! {
+    pub fn exit(&self, code: usize) {
         // 由于要切换到 idle 线程，必须先关闭时钟中断
         // disable_and_store();
 
@@ -159,11 +166,19 @@ impl Processor {
             .1
             .switch_to(&mut inner.idle);
 
-        loop {}
+        //loop {}
     }
 
+    /* pub fn switch_to_idle(&self) {
+        let inner = self.inner();
+        let tid = inner.current.as_ref().unwrap().0;
+        inner.pool.exit(tid);
+        
+        inner.current.as_mut().unwrap().1.switch_to(&mut inner.idle);
+    } */
+
 	pub fn run(&self) {
-        Thread::new_idle().switch_to(&mut self.inner().idle);
+        CPU.idle_main();
     }
 }
 

@@ -5,7 +5,7 @@
 #![feature(asm)]
 #[macro_use]
 extern crate user_lib;
-use user_lib::*;
+use user_lib::{*, test_lib::AsyncTest};
 
 extern crate alloc;
 
@@ -13,11 +13,11 @@ extern crate alloc;
 #[no_mangle]
 pub fn main() -> i32 {
 
-    println!("[user2] Hello world from user mode program!");
+    println!("[user2] main: Hello world from user mode program!");
 
     test_for_user();
 
-    println!("[user2] end");
+    println!("[user2] main: end");
 
     0
 }
@@ -72,9 +72,8 @@ pub fn test_for_user(){
         
         let cpu_run: fn() = core::mem::transmute(cpu_run_addr as usize);
 
-        let add_task_with_priority : fn(future: Pin<Box<dyn Future<Output=()> + 'static + Send + Sync>> , usize) -> () = unsafe {
-            core::mem::transmute(add_user_task_with_priority_addr as usize)
-        };
+        let add_task_with_priority : fn(future: Pin<Box<dyn Future<Output=()> + 'static + Send + Sync>> , usize) -> () 
+            = core::mem::transmute(add_user_task_with_priority_addr as usize);
 
         // println!("init_environment");
         init_environment();
@@ -83,19 +82,27 @@ pub fn test_for_user(){
         init_cpu();
 
         async fn test(x: i32) {
-            let test_inner = async { println!("[hart {}] [user2] {}, await done", hart_id(), x); };
+            let test_inner = async { 
+                let mut c: usize = 0;
+                for i in 0..1000_000_000 {
+                    c += i % 6;
+                }
+                println!("[hart {}] [user2] calc plus, sum = {}", hart_id(), c);
+            };
             test_inner.await;
         }
         add_task_with_priority(Box::pin(test(666)), 0);
         // println!("test task addr :{:#x?}", test as usize);
         // println!("add_task");
 
-        async fn test_num(x: i32) {
-            println!("[hart {}] [user2] {}", hart_id(), x);
+        async fn test_num(prio: usize, no: usize) {
+            println!("[hart {}] [user2] prio: {}, No.: {}, total:6", hart_id(), prio, no);
         }
 
         for i in 0..5{
-            add_task_with_priority(Box::pin(test_num(i)), 5 - i as usize);
+            for j in 1..=6 {
+                add_task_with_priority(Box::pin(test_num(5 - i, j)), 5 - i as usize);
+            }
         }
 
         // println!("cpu_run");

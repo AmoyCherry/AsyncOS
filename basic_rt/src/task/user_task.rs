@@ -11,7 +11,7 @@ use core::sync::atomic::{AtomicUsize, Ordering};
 use core::task::{Context, Poll};
 use spin::Mutex;
 
-use super::reactor::{Reactor, REACTOR};
+//use super::reactor::{Reactor, REACTOR};
 
 
 #[derive(Eq, PartialEq, Debug, Clone, Copy, Hash, Ord, PartialOrd)]
@@ -38,9 +38,7 @@ pub struct UserTask{
     pub id: TaskId,
     // future
     pub future: Mutex<Pin<Box<dyn Future<Output=()> + 'static + Send + Sync>>>, 
-    // reactor
-    pub reactor: Arc<Mutex<Box<Reactor>>>,
-    
+
     pub prio: usize,
 }
 
@@ -50,39 +48,8 @@ impl UserTask{
         UserTask{
             id: TaskId::generate(),
             future: future,
-            reactor: REACTOR.clone(),
+            //reactor: REACTOR.clone(),
             prio: p,
-        }
-    }
-
-    pub fn do_wake(self: &Arc<Self>) {
-        self.reactor.lock().wake(self.id);
-    }
-}
-
-
-impl Future for UserTask {
-    type Output = usize;
-    fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
-        let mut r = self.reactor.lock();
-        if r.is_ready(self.id) {
-            //r.finish_task(self.id);
-            Poll::Ready(self.id.0)
-        } else if !r.contains_task(self.id) {
-            r.add_task(self.id);
-            Poll::Pending
-        } else {
-            let mut f = self.future.lock();
-            match f.as_mut().poll(cx) {
-                Poll::Ready(_) => {
-                    Poll::Ready(0)
-                },
-                Poll::Pending => {
-                    r.register(self.id); // fixme
-                    Poll::Pending
-                }
-            }
-    
         }
     }
 }

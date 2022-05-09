@@ -13,11 +13,11 @@ extern crate alloc;
 #[no_mangle]
 pub fn main() -> i32 {
 
-    println!("[user4] Hello world from user mode program!");
+    println!("[user4] main: Hello world from user mode program!");
 
     test_for_user();
 
-    println!("[user4] end");
+    println!("[user4] main: end");
 
     0
 }
@@ -85,19 +85,28 @@ pub fn test_for_user(){
         init_cpu();
 
         async fn test(x: i32) {
-            let test_inner = async { println!("[hart {}] [user4] {}, await done", hart_id(), x); };
+            let test_inner = async { 
+                let mut c: usize = 0;
+                for i in 0..1000_000_000 {
+                    c += i % 6;
+                }
+                println!("[hart {}] [user4] calc plus, sum = {}", hart_id(), c); 
+            };
             test_inner.await;
+            println!("[hart {}] [user4] await done", hart_id()); 
         }
         add_task_with_priority(Box::pin(test(666)), 0);
         // println!("test task addr :{:#x?}", test as usize);
         // println!("add_task");
 
-        async fn test_num(x: i32) {
-            println!("[hart {}] [user4] {}", hart_id(), x);
+        async fn test_num(prio: usize, no: usize) {
+            println!("[hart {}] [user4] prio: {}, No.: {}, total: 6", hart_id(), prio, no);
         }
 
         for i in 0..5{
-            add_task_with_priority(Box::pin(test_num(i)), 5 - i as usize);
+            for j in 1..=6 {
+                add_task_with_priority(Box::pin(test_num(5 - i, j)), 5 - i as usize);
+            }
         }
 
         // println!("cpu_run");
