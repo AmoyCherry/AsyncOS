@@ -167,6 +167,10 @@ pub fn sys_get_symbol_addr(symbol_name: *const u8) -> isize{
 
 }
 
+pub fn sys_get_satp() -> isize {
+    current_user_token() as isize
+}
+
 // use crate::loader::get_app_data_by_name;
 
 // pub fn sys_exec_v1() -> isize {

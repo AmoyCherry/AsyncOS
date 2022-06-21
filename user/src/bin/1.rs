@@ -5,7 +5,9 @@
 #![feature(asm)]
 #[macro_use]
 extern crate user_lib;
-use user_lib::*;
+
+use alloc::string::String;
+use user_lib::{*, syscall::{AsyncCall, ASYNC_SYSCALL_READ, ASYNC_SYSCALL_WRITE}};
 
 extern crate alloc;
 
@@ -13,118 +15,62 @@ extern crate alloc;
 #[no_mangle]
 pub fn main() -> i32 {
 
-    println!("[user1] main: Hello world from user mode program!");
+    println!("[user1 satp: {:#x}] main: Hello world from user mode program!", satp_read());
+
+    init_coroutine_interface();
 
     test_for_user();
 
-    println!("[user1] main: end");
+    println!("[user1 satp: {:#x}] main: end, time", satp_read());
 
     0
 }
 
-pub fn hart_id() -> usize {
-    let hart_id: usize;
-    unsafe {
-        asm!("mv {}, tp", out(reg) hart_id);
-    }
-    hart_id
-}
+pub const DATA: &str = "abcdefgabcdefgabasdfasdafsdfasdaabcdefgabcdegabasdfasdfsdasabcdefgabcdefgabasdfasdfsdfasdfasdfsadfaasgabcdefgabasdfasdfsdfasdas";
+pub const BUFFER_SIZE: usize = 128;
 
-/* pub fn get_satp() -> usize {
-    let satp;
-    unsafe {
-        asm!("mv {}, satp", out(reg) satp)
-    }
-    satp
-} */
-
-pub fn satp_read() -> usize {
-    let ret: usize;
-    unsafe {llvm_asm!("csrr $0, satp":"=r"(ret):::"volatile");}
-    ret
-}
-
-
-
+#[allow(unused_mut)]
 pub fn test_for_user(){
-
-    // let base = 0x86000000 - 0x87000000;
-    let init_environment_addr = get_symbol_addr("init_environment\0") as usize - 0x1000000;
-    let init_cpu_addr = get_symbol_addr("init_cpu_test\0") as usize - 0x1000000;
-    let cpu_run_addr = get_symbol_addr("cpu_run\0") as usize    - 0x1000000;
-    let add_user_task_with_priority_addr = get_symbol_addr("add_user_task_with_priority\0") as usize   - 0x1000000;
-    // println!("init_environment at {:#x?}", init_environment_addr);
-    // println!("init_cpu at {:#x?}", init_cpu_addr);
-    // println!("cpu_run at {:#x?}", cpu_run_addr);
-    // println!("add_user_task at {:#x?}", add_user_task_with_priority_addr);
 
     use core::future::Future;
     use core::pin::Pin;
     use alloc::boxed::Box;
 
-
     unsafe{
         
-        let init_environment: fn() = core::mem::transmute(init_environment_addr as usize );
-        
-        let init_cpu: fn()= core::mem::transmute(init_cpu_addr as usize);
-        
-        let cpu_run: fn() = core::mem::transmute(cpu_run_addr as usize);
+        let coroutine_run: fn() = core::mem::transmute(COROUTINE_RUN_VA as usize);
+        let add_coroutine_with_prio: fn(future: Pin<Box<dyn Future<Output=()> + 'static + Send + Sync>> , usize) -> ()
+            = core::mem::transmute(ADD_COROUTINE_WITH_PRIO_VA as usize);
 
-        let add_task_with_priority : fn(future: Pin<Box<dyn Future<Output=()> + 'static + Send + Sync>> , usize) -> () = unsafe {
-            core::mem::transmute(add_user_task_with_priority_addr as usize)
-        };
+        let mut pipe_fd = [0usize; 2];
+        pipe(&mut pipe_fd);
 
-        // println!("init_environment");
-        init_environment();
-        
-        // println!("init_cpu");
-        init_cpu();
-
-        async fn test(x: i32) {
-            let test_inner = async { 
-                let mut c: usize = 0;
-                for i in 0..1000_000_000 {
-                    c += i % 6;
-                }
-                println!("[hart {}] [user1] calc plus, sum = {}", hart_id(), c);
-            };
-            test_inner.await;
-            println!("[hart {}] [user1] await done", hart_id()); 
+        async fn work1(fd: usize) {
+            let mut buffer = [0u8; BUFFER_SIZE];
+            let ac = AsyncCall::new(ASYNC_SYSCALL_READ, fd, buffer.as_ptr() as usize, buffer.len(), 0, 1, 33);
+            ac.await;
+            println!("[user] read {:#?}", buffer);
         }
-        add_task_with_priority(Box::pin(test(666)), 0);
-        // println!("test task addr :{:#x?}", test as usize);
-        // println!("add_task");
+        add_coroutine_with_prio(Box::pin(work1(pipe_fd[0])), 0);
+        
 
-        // 低优先级协程执行时添加一个较高优先级协程
-
-        async fn test_num(x: i32, addr: usize) {
-            async fn test1(y: i32) {
-                println!("[hart {}] [user1] {}, add this coroutine in a coroutine", hart_id(), y);
+        for i in 0..1 {
+            
+            async fn work2(fd: usize, id: usize) {
+                //let mut buffer = [0u8; 32];
+                let str = DATA;
+                let ac = AsyncCall::new(ASYNC_SYSCALL_WRITE, fd, str.as_bytes().as_ptr() as usize, str.len(), id, 1, 33);
+                ac.await;
+                //close(fd)
+                println!("[user] write {} ok", id);
             }
-            let add_task_with_priority : fn(future: Pin<Box<dyn Future<Output=()> + 'static + Send + Sync>> , usize) -> () = unsafe {
-                core::mem::transmute(addr as usize)
-            };
-            add_task_with_priority(Box::pin(test1(x)), 5 - x as usize);
-
-            println!("[hart {}] [user1] {}", hart_id(), x);
+            add_coroutine_with_prio(Box::pin(work2(pipe_fd[1], i + 1)), 0);
         }
 
-        for i in 0..5{
-            add_task_with_priority(Box::pin(test_num(i, add_user_task_with_priority_addr)), 5 - (i as usize));
-        }
-        // read file, path must be end with '\0'
-        async fn read_file() {
-            let fd = open("data\0", OpenFlags::RDONLY);
-            let mut buffer = [0u8;64];
-            read(fd as usize, &mut buffer);
-            println!("buffer : {:?}", buffer);
-            close(fd as usize);
-        }
-        add_task_with_priority(Box::pin(read_file()), 0);
+        
 
-        // println!("cpu_run");
-        cpu_run();
+        
+        coroutine_run();
     }
 
 }

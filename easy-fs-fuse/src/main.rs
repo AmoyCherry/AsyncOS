@@ -57,13 +57,13 @@ fn easy_fs_pack() -> std::io::Result<()> {
             .write(true)
             .create(true)
             .open(format!("{}{}", target_path, "fs.img"))?;
-        f.set_len(8192 * 512 * 2).unwrap();
+        f.set_len(16 * 4096 * 512).unwrap();
         f
     })));
     // 4MiB, at most 4095 files
     let efs = EasyFileSystem::create(
         block_file.clone(),
-        8192 * 2,
+        16 * 4096,
         1,
     );
     let root_inode = Arc::new(EasyFileSystem::root_inode(&efs));
@@ -80,6 +80,7 @@ fn easy_fs_pack() -> std::io::Result<()> {
         })
         .collect();
     println!("apps {}", apps[0]);
+
     // apps.push("tiny_os_a".to_string().unwrap());
     for app in apps {
         // load app data from host file system
@@ -91,13 +92,13 @@ fn easy_fs_pack() -> std::io::Result<()> {
         // write data to easy-fs
         inode.write_at(0, all_data.as_slice());
     }
-
+    
     let mut host_file = File::open("../basic_rt/target/riscv64gc-unknown-none-elf/debug/basic_rt").unwrap();
     let mut all_data: Vec<u8> = Vec::new();
     host_file.read_to_end(&mut all_data).unwrap();
     let inode = root_inode.create("basic_rt").unwrap();
     inode.write_at(0, all_data.as_slice());
-
+    
     let mut test_file = File::open("../user/src/data.txt").unwrap();
     let mut all_data: Vec<u8> = Vec::new();
     test_file.read_to_end(&mut all_data).unwrap();

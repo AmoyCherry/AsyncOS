@@ -19,7 +19,12 @@ pub use page_table::{
     UserBufferIterator,
     translated_context,
 };
-pub use memory_set::{MemorySet, KERNEL_SPACE, MapPermission, kernel_token};
+pub use memory_set::{
+    MemorySet, 
+    KERNEL_SPACE, 
+    MapPermission, 
+    kernel_token, 
+    CBQ_BASE_PA, USER_CBQ_VA, SYS_CBQ_VA, USER_CBQ_VEC_PA, MAX_USER};
 pub use memory_set::remap_test;
 // pub use memory_set::SPACE_ID_SATP;
 

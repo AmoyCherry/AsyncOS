@@ -13,7 +13,7 @@
 pub mod console;
 pub mod test_lib;
 
-mod syscall;
+pub mod syscall;
 mod lang_items;
 
 extern crate alloc;
@@ -23,8 +23,10 @@ extern crate bitflags;
 use syscall::*;
 use buddy_system_allocator::LockedHeap;
 use alloc::vec::Vec;
+pub use test_lib::compute;
 
-const USER_HEAP_SIZE: usize = 65536;
+//const USER_HEAP_SIZE: usize = 0x80_0000;
+const USER_HEAP_SIZE: usize = 0xFF_0000;
 
 static mut HEAP_SPACE: [u8; USER_HEAP_SIZE] = [0; USER_HEAP_SIZE];
 
@@ -127,6 +129,56 @@ pub fn get_symbol_addr(name: &str) -> usize{
 
     sys_get_symbol_addr(name) as usize
 }
+
+
+// ==================== SEARCH FOR COROUTINE INTERFACE ====================
+
+
+/// let add_coroutine_with_prio : fn(future: Pin<Box<dyn Future<Output=()> + 'static + Send + Sync>> , usize) -> () = unsafe {
+///   core::mem::transmute(ADD_COROUTINE_WITH_PRIO_VA as usize)
+/// };
+/// 
+///  let coroutine_run: fn() = core::mem::transmute(COROUTINE_RUN_VA as usize);
+pub static mut ADD_COROUTINE_WITH_PRIO_VA: usize = 0x0;
+pub static mut COROUTINE_RUN_VA: usize = 0x0;
+pub static mut WAKE_COROUTINE_VA: usize = 0x0;
+pub static mut CHECK_CALLBACK: usize = 0x0;
+
+
+pub fn init_coroutine_interface() {
+    let init_environment_addr = get_symbol_addr("init_environment\0") as usize - 0x1000000;
+    //let init_cpu_addr = get_symbol_addr("init_cpu_test\0") as usize - 0x1000000;
+    
+    //let init_cpu: fn();
+    let init_environment: fn();
+    unsafe {
+        init_environment = core::mem::transmute(init_environment_addr as usize );
+        //init_cpu = core::mem::transmute(init_cpu_addr as usize);
+        COROUTINE_RUN_VA = get_symbol_addr("cpu_run\0") as usize    - 0x1000000;
+        ADD_COROUTINE_WITH_PRIO_VA = get_symbol_addr("add_user_task_with_priority\0") as usize   - 0x1000000;
+        //WAKE_COROUTINE_VA = get_symbol_addr("wake_coroutine\0") as usize - 0x1000000;
+        CHECK_CALLBACK = get_symbol_addr("check_callback\0") as usize - 0x1000000;
+    }
+
+    init_environment();
+    //init_cpu();
+}
+
+
+// ==================== FETCH REGISTER VALUE ====================
+
+pub fn hart_id() -> usize {
+    let hart_id: usize;
+    unsafe {
+        asm!("mv {}, tp", out(reg) hart_id);
+    }
+    hart_id
+}
+
+pub fn satp_read() -> usize {
+    sys_get_satp() as usize
+}
+
 
 
 

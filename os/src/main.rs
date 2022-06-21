@@ -31,6 +31,7 @@ mod fs;
 mod drivers;
 mod loader;
 mod lkm;
+mod basic_rt;
 
 
 global_asm!(include_str!("entry.asm"));
@@ -39,6 +40,8 @@ global_asm!(include_str!("link_app.S"));
 
 use core::sync::atomic::{AtomicBool, Ordering};
 use core::hint::{spin_loop, self};
+
+use crate::basic_rt::thread::cpu_run;
 
 
 fn clear_bss() {
@@ -66,13 +69,15 @@ pub fn rust_main(hart_id: usize) -> ! {
         timer::set_next_trigger();
         info!("loader list app");
         fs::list_apps();
-        // test_for_kernel(0);
+        
         debug!("trying to add user test");
         //task::add_initproc();
         task::add_user_test();
-
+        
         send_ipi();
         AP_CAN_INIT.store(true, Ordering::Relaxed);
+
+        basic_rt::thread::init_cpu_test();
 
     }else{
         init_other_cpu();
@@ -80,9 +85,13 @@ pub fn rust_main(hart_id: usize) -> ! {
 
     println_hart!("Hello", hart_id);
     
+    if hart_id == 0 {
+        println_hart!("run user task", hart_id);
+        task::run_tasks();
+    } else {
+        cpu_run();
+    }
     
-    println_hart!("run user task", hart_id);
-    task::run_tasks();
     
     panic!("Unreachable in rust_main!");
 }
@@ -134,6 +143,7 @@ pub fn hart_id() -> usize {
     }
     hart_id
 }
+
 
 pub fn test_for_kernel(base: usize){
     let init_environment_addr = lkm::get_symbol_addr_from_elf("basic_rt", "init_environment");

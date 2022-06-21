@@ -213,6 +213,7 @@ pub fn translated_refmut<T>(token: usize, ptr: *mut T) -> &'static mut T {
     page_table.translate_va(VirtAddr::from(va)).unwrap().get_mut()
 }
 
+
 pub struct UserBuffer {
     pub buffers: Vec<&'static mut [u8]>,
 }
@@ -241,6 +242,9 @@ impl IntoIterator for UserBuffer {
         }
     }
 }
+
+unsafe impl Send for UserBuffer {}
+
 
 pub struct UserBufferIterator {
     buffers: Vec<&'static mut [u8]>,

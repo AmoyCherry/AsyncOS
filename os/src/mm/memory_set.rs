@@ -47,8 +47,29 @@ lazy_static! {
     ));
 } */
 
-const SYS_BITMAP_VA: usize = 0x8741_0000;
-const USER_BITMAP_VA: usize = 0x8742_0000;
+/// 4KB = 2^12 = 0x1000
+/// 16 * 4KB = 2^16 = 0x1_0000
+/// user bitmap's PA         : 0x8740_1000 -> 0x8741_0000
+/// sys bitmap's PA == VA    : 0x8741_2000
+/// sys cbq's PA == VA       : 0x8741_3000
+/// sys cbq vec's PA == VA   : 0x8741_4000
+/// user cbq's PA            : 0x8741_5000 -> 0x8742_5000
+/// user cbq vec's PA        : 0x8742_6000 -> 0x8743_5000
+pub const USER_BITMAP_BASE_PA: usize = 0x8740_0000;
+pub const SYS_BITMAP_VA: usize = 0x8741_2000;
+pub const MAX_USER: usize = 14;
+pub const CBQ_BASE_PA: usize = 0x8741_4000;
+//pub const SYS_CBQ_VA: usize = USER_CBQ_VEC_PA + PAGE_SIZE * (MAX_USER + 1) * CBQ_VEC_PAGE_NUM + PAGE_SIZE;
+//pub const SYS_CBQ_VEC_VA: usize = SYS_CBQ_VA + PAGE_SIZE;
+pub const SYS_CBQ_VA: usize = 0x8741_3000;
+pub const SYS_CBQ_VEC_VA: usize = 0x8741_4000;
+pub const USER_CBQ_VEC_PA: usize = 0x8742_5000;
+
+pub const USER_BITMAP_VA: usize = 0x8742_0000;
+pub const USER_CBQ_VA: usize = 0x8743_0000;
+pub const USER_CBQ_VEC_VA: usize = 0x8742_2000;
+
+pub const CBQ_VEC_PAGE_NUM: usize = 8;
 
 
 // lazy_static! {
@@ -71,6 +92,7 @@ pub struct MemorySet {
     areas: Vec<MapArea>,
 }
 
+#[allow(non_snake_case)]
 impl MemorySet {
     pub fn new_bare() -> Self {
         Self {
@@ -136,7 +158,7 @@ impl MemorySet {
     //为内核模块设置空间,以及映射内核以及用户位图.
 
     pub fn push_shared_kernel(&mut self) {
-        let start_addr = 0x87000000 as usize;
+        let start_addr = 0x8700_0000 as usize;
         for i in 0..(1024) {
             self.page_table.map(
                 VirtAddr::from(start_addr + PAGE_SIZE*i).into(),  
@@ -153,18 +175,34 @@ impl MemorySet {
         }
         println!("start: {:#x} end: {:#x}", start_addr, start_addr + PAGE_SIZE*(1024));
 
-        
-        let start_addr = 0x8740_0000 as usize;
-
-        
-        //user bitmap  kernel space  va = pa = 0x87400000 + page_size * pid 
-        for i in 1..9{
-            info!("kernel pid:{:#x} user bitmap in pa:{:#x}", i, start_addr + PAGE_SIZE*i);
+               
+        //user bitmap  kernel space  va = pa = 0x87400000 + page_size * pid
+        for i in 1..=MAX_USER {
+            info!("kernel pid:{:#x} user bitmap pa:{:#x}, cbq pa:{:#x}", i, USER_BITMAP_BASE_PA + PAGE_SIZE*i, CBQ_BASE_PA + PAGE_SIZE * i);
             self.page_table.map(
-                VirtAddr::from(start_addr + PAGE_SIZE * i).into(),  
-                PhysAddr::from(start_addr + PAGE_SIZE * i).into(),  
+                VirtAddr::from(USER_BITMAP_BASE_PA + PAGE_SIZE * i).into(),  
+                PhysAddr::from(USER_BITMAP_BASE_PA + PAGE_SIZE * i).into(),  
                 PTEFlags::R | PTEFlags::X|PTEFlags::W
             );
+            // cbq
+            self.page_table.map(
+                VirtAddr::from(CBQ_BASE_PA + PAGE_SIZE * i).into(),  
+                PhysAddr::from(CBQ_BASE_PA + PAGE_SIZE * i).into(),  
+                PTEFlags::R | PTEFlags::X|PTEFlags::W
+            );
+            // cbq vec
+            for j in 1..=CBQ_VEC_PAGE_NUM {
+                self.page_table.map(
+                    VirtAddr::from(USER_CBQ_VEC_PA + PAGE_SIZE * ((i - 1) * CBQ_VEC_PAGE_NUM + j)).into(),  
+                    PhysAddr::from(USER_CBQ_VEC_PA + PAGE_SIZE * ((i - 1) * CBQ_VEC_PAGE_NUM + j)).into(),  
+                    PTEFlags::R | PTEFlags::X|PTEFlags::W
+                );
+            }
+            /* self.page_table.map(
+                VirtAddr::from(USER_CBQ_VEC_PA + PAGE_SIZE * i).into(),  
+                PhysAddr::from(USER_CBQ_VEC_PA + PAGE_SIZE * i).into(),  
+                PTEFlags::R | PTEFlags::X|PTEFlags::W
+            ); */
         }
         
         //kernel_bitmap  kernel space va = pa = 0x87410000 + page_size * pid 
@@ -174,27 +212,72 @@ impl MemorySet {
             PTEFlags::R | PTEFlags::X |PTEFlags::W
         );
 
+        self.page_table.map(
+            VirtAddr::from(SYS_CBQ_VA).into(),  
+            PhysAddr::from(SYS_CBQ_VA).into(),  
+            PTEFlags::R | PTEFlags::X |PTEFlags::W
+        );
+
+        self.page_table.map(
+            VirtAddr::from(SYS_CBQ_VEC_VA).into(),  
+            PhysAddr::from(SYS_CBQ_VEC_VA).into(),  
+            PTEFlags::R | PTEFlags::X |PTEFlags::W
+        );
+        /* for i in 1..=CBQ_VEC_PAGE_NUM {
+            self.page_table.map(
+                VirtAddr::from(SYS_CBQ_VEC_VA + PAGE_SIZE * (i - 1)).into(),  
+                PhysAddr::from(SYS_CBQ_VEC_VA + PAGE_SIZE * (i - 1)).into(),  
+                PTEFlags::R | PTEFlags::X |PTEFlags::W
+            );
+        } */
+
     }
 
     //为用户映射位图
     pub fn bitmap_user(&mut self, space_id: usize) {
         
         let start_addr = 0x8740_0000 as usize;
-        info!("pid:{:#x} bitmap pa:{:#x}", space_id, start_addr + PAGE_SIZE*space_id);
+        info!("pid:{:#x} bitmap pa:{:#x}, cbq pa: {:#x}", space_id, start_addr + PAGE_SIZE*space_id, CBQ_BASE_PA + PAGE_SIZE * space_id);
 
-        //user bitmap user space  va = 0x87420000  pa = 0x87400000 + page_size * pid
+        // user bitmap user space  va = 0x87420000  pa = 0x87400000 + page_size * pid
+        // all users access their bitmap through `USER_BITMAP_VA`
         self.page_table.map(
             VirtAddr::from(USER_BITMAP_VA).into(),  
             PhysAddr::from(start_addr + PAGE_SIZE*space_id).into(),  
             PTEFlags::R | PTEFlags::X  | PTEFlags::U |PTEFlags::W
         );
 
-        //kernel bitmap  user space va = 0x87410000 pa = 0x87410000
+        // kernel bitmap  user space va = 0x87410000 pa = 0x87410000
+        // all users access sys bitmap through `SYS_BITMAP_VA`
         self.page_table.map(
             VirtAddr::from(SYS_BITMAP_VA).into(),  
             PhysAddr::from(SYS_BITMAP_VA).into(),  
             PTEFlags::R | PTEFlags::X  | PTEFlags::U |PTEFlags::W
         );
+
+        self.page_table.map(
+            VirtAddr::from(USER_CBQ_VA).into(), 
+            PhysAddr::from(CBQ_BASE_PA + PAGE_SIZE * space_id).into(), 
+            PTEFlags::R | PTEFlags::X  | PTEFlags::U |PTEFlags::W
+        );
+
+        /* self.page_table.map(
+            VirtAddr::from(USER_CBQ_VEC_VA).into(), 
+            PhysAddr::from(USER_CBQ_VEC_PA + PAGE_SIZE * space_id).into(), 
+            PTEFlags::R | PTEFlags::X  | PTEFlags::U |PTEFlags::W
+        ); */
+        self.page_table.map(
+            VirtAddr::from(USER_CBQ_VEC_VA).into(), 
+            PhysAddr::from(USER_CBQ_VEC_PA + PAGE_SIZE * ((space_id - 1) * CBQ_VEC_PAGE_NUM + 1)).into(), 
+            PTEFlags::R | PTEFlags::X  | PTEFlags::U |PTEFlags::W
+        );
+        for i in 2..=CBQ_VEC_PAGE_NUM {
+            self.page_table.map(
+                VirtAddr::from(USER_CBQ_VEC_VA + PAGE_SIZE * (i - 1)).into(), 
+                PhysAddr::from(USER_CBQ_VEC_PA + PAGE_SIZE * ((space_id - 1) * CBQ_VEC_PAGE_NUM + i)).into(), 
+                PTEFlags::R | PTEFlags::X  | PTEFlags::U |PTEFlags::W
+            );
+        }
     }
 
 

@@ -73,12 +73,13 @@ lazy_static! {
 }
 
 const PROCESS_NUM: usize = 8;
+use crate::mm::MAX_USER;
 
 pub fn update_bitmap(){
     let start_addr = 0x8740_0000 as usize;
     let mut ans = 0;
     let mut u_maps:Vec<usize> = vec![0];
-    for i in 1..=PROCESS_NUM {
+    for i in 1..=MAX_USER {
         let user_bitmap = unsafe { &*( (start_addr + PAGE_SIZE*i) as *const BitMap) };
 
         //debug!("[hart {}] update, [space {}] bitmap:    {:#b}",hart_id(), i, user_bitmap.0);
@@ -89,7 +90,7 @@ pub fn update_bitmap(){
 
     let mask = get_right_one_mask(ans);
     PRIO_PIDS.lock().clear();
-    for i in 1..=PROCESS_NUM {
+    for i in 1..=MAX_USER {
         if (u_maps[i] & mask) != 0 { 
             //debug!("PRIO_PIDS push: {}", i);
             PRIO_PIDS.lock().insert(i); 
@@ -100,7 +101,7 @@ pub fn update_bitmap(){
         // 要依靠裸指针修改内存值, 必须使用这种写法
         let sys_bitmap = &mut *(SYS_BITMAP_VA as *mut BitMap);
         sys_bitmap.0 = ans;
-        //debug!("[hart {}] hard [{}] update bitmap :     {:#b}", hart_id(), crate::hart_id(), sys_bitmap.0);
+        //debug!("[hart {}] update bitmap :     {:#b}", hart_id(), sys_bitmap.0);
     }
 }
 

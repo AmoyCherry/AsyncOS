@@ -9,7 +9,7 @@ mod bitmap;
 
 use crate::fs::{open_file, OpenFlags};
 use switch::__switch;
-use task::{TaskControlBlock, TaskStatus};
+pub use task::{TaskControlBlock, TaskStatus};
 use alloc::{sync::Arc, string::ToString};
 pub use pool::{add_task, fetch_task, prioritize_task};
 use lazy_static::*;
@@ -108,7 +108,7 @@ pub fn add_initproc() {
 
 pub fn add_user_test(){
 
-    for i in 1..=4 {
+    for i in 2..=2 {
         info!("add user task {}", i);
         let task = Arc::new({
             let inode = open_file(i.to_string().as_str(), OpenFlags::RDONLY);

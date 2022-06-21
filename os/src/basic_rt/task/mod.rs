@@ -1,31 +1,32 @@
 #![no_std]
 
-pub mod bitmap;
-//pub mod queue;
-pub mod user_task;
+
 pub mod excutor;
+pub mod bitmap;
 pub mod cbq;
+pub mod user_task;
 
 use alloc::string::{String, ToString};
-use alloc::vec::{self, Vec};
-use bitmap::check_bitmap_should_yield;
-use user_task::UserTask;
-use excutor::{Excutor,TaskWaker};
-use cbq::{CBQ_VA, CBQueue, wakeup_all};
 
+use excutor::Excutor;
+use cbq::{CBQueue, CBQ_VA, wakeup_all};
+use user_task::UserTask;
 
 use alloc::sync::Arc;
 use alloc::boxed::Box;
 use core::future::Future;
 use core::pin::Pin;
 
+
+use crate::syscall::sys_get_time;
+
+
 use core::task::{Context, Poll};
 use spin::Mutex;
 use woke::waker_ref;
 use lazy_static::*;
 use crate::console::print;
-use crate::{println, print, CPU};
-use crate::syscall::{sys_yield, sys_get_time};
+//use crate::{println, print, CPU};
 
 // use crate::println;
 
@@ -34,24 +35,21 @@ lazy_static!{
     
 }
 
+// 应该使用thread_local
+pub static mut CUR_COROUTINE: usize = 0;
 
 #[no_mangle]
 pub fn thread_main_ex() {
-    println!(" > > > > > > > thread_main < < < < < < < ");
-    // 计时, 每次取出开始协程时修改start, 取出结束协程tid == TEST_NUM 时修改end
-    let mut start = sys_get_time();
-    let mut end = 0;
-    let mut cnt = 0;
-    let mut times = Vec::new();
+    println!(" > > > > > > > [kernel] thread_main < < < < < < < ");
 
     let mut cbq = unsafe { &mut *(CBQ_VA as *mut CBQueue) };
 
     loop {
-        if !cbq.is_empty() { 
-            let mut tids = cbq.pop();
-            wakeup_all(&mut tids); 
-        }
-        //println!("cbq is empty");
+
+        //if !cbq.is_empty() { 
+        //    let mut tids = cbq.pop();
+        //    wakeup_all(&mut tids); 
+        //}
 
         let tid;
         let task;
@@ -59,7 +57,7 @@ pub fn thread_main_ex() {
         // get EXCUTOR lock
         {
             let mut ex = EXCUTOR.lock();
-            if ex.is_empty() { break; }
+            if ex.is_empty() { continue; }
 
             let tid_wrap = ex.pop();
             if tid_wrap.is_none() { continue; }
@@ -68,39 +66,31 @@ pub fn thread_main_ex() {
             let top = ex.get_task(&tid);
             if top.is_none() { continue; }
             task = top.unwrap().clone();
-
+            
             waker = ex.get_waker(tid, task.prio);
         }
-                                        
+        unsafe { CUR_COROUTINE = tid.get_val(); }                                
         // creat Context
         let mut context = Context::from_waker(&*waker);
         match task.future.lock().as_mut().poll(&mut context) {
-            Poll::Pending => {  }
+            Poll::Pending => { }
             Poll::Ready(()) => {
                 // remove task
                 EXCUTOR.lock().del_task(&tid);
-                
-                if task.prio == 0 {
-                    end = sys_get_time();
-                    times.push((end - start) as usize);
-                }
             }
         }; 
+
+        
+
         //if check_bitmap_should_yield() { sys_yield(); }
     }
-    for i in 0..times.len() {
-        print!("{} ", times[i]);
-        if (i + 1) % 50 == 0 {
-            println!("");
-        }
-    }
-    println!("");
 
     //println!("stats mean: {} , stats population_stddev {} ", stats.mean(), stats.population_stddev());
 
 }
 
 
+// add_user_task_with_priority(future: Pin<Box<dyn Future<Output=()> + 'static + Send + Sync>>, prio: usize)
 #[no_mangle]
 pub fn add_user_task_with_priority(future: Pin<Box<dyn Future<Output=()> + 'static + Send + Sync>>, prio: usize){
     let task = Arc::new(UserTask::spawn(Mutex::new(future), prio));

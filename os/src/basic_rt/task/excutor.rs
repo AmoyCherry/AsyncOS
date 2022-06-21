@@ -11,9 +11,9 @@ use alloc::{vec::Vec, vec};
 use alloc::collections::{VecDeque};
 use spin::Mutex;
 
-use crate::bitmap::{update_user_bitmap, PRIO_NUM};
-use crate::user_task::{TaskId, UserTask};
-use crate::{println, EXCUTOR};
+use super::EXCUTOR;
+use super::{user_task::{TaskId, UserTask}, bitmap::{PRIO_NUM, update_user_bitmap}};
+
 
 pub struct Excutor {
     pub tasks: BTreeMap<TaskId, Arc<UserTask>>,
@@ -74,6 +74,13 @@ impl Excutor {
 
 
 // ===================== WAKER =====================
+pub fn wakeup(t: usize) {
+    if EXCUTOR.lock().tasks.contains_key(&TaskId::get_tid_by_usize(t)) {
+        EXCUTOR.lock().wake_coroutine(TaskId::get_tid_by_usize(t));
+    }
+    
+}
+
 pub struct TaskWaker {
     tid: TaskId,
     prio: usize,
@@ -93,7 +100,7 @@ impl TaskWaker {
     }
 
     fn wake_task(&self) {
-        //println!("------------------ wake coroutine tid = {} ------------------", self.tid.get_val());
+        //println!("------------------ wake task ------------------");
         self.queue.lock().add_tid(self.tid, self.prio);
     }
 }
@@ -140,6 +147,36 @@ impl TaskQueue {
         }
 
         None
+    }
+}
+
+
+lazy_static! {
+    pub static ref WRMAP: Arc<Mutex<WRMap>> = Arc::new(Mutex::new(WRMap::new()));
+}
+
+/// key -> r_id, write coroutine can use WRMAP to find the corresponding read coroutine id 
+pub struct WRMap {
+    map: BTreeMap<usize, usize>,
+}
+
+impl WRMap {
+    pub fn new() -> Self {
+        Self { map: BTreeMap::new(), }
+    }
+
+    pub fn register(&mut self, k: usize, rid: usize) {
+        self.map.insert(k, rid);
+    }
+
+    pub fn get_rid(&mut self, k: usize) -> Option<usize> {
+        let mut ret = None;
+        if self.map.get(&k).is_some() {
+            ret = Some(*self.map.get(&k).unwrap());
+            self.map.remove(&k);
+        }
+
+        ret
     }
 }
 

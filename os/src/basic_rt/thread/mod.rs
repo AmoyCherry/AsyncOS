@@ -28,9 +28,7 @@ use thread_pool::ThreadPool;
 pub static CPU : Processor = Processor::new();
 
 
-use crate::cbq::CBQueue;
-use crate::task::thread_main_ex;
-use crate::task::add_user_task_with_priority;
+use crate::basic_rt::{cbq::CBQueue, thread_main_ex, add_user_task_with_priority, EXCUTOR};
 use crate::{println};
 
 pub fn init() {
@@ -73,12 +71,12 @@ pub fn add_to_thread_pool(addr: usize, space_id:usize) {
 #[no_mangle]
 pub fn init_cpu_test() {
     CBQueue::init();
-
+    
     let scheduler = RRScheduler::new(50);
     
     // 新建线程池
     let thread_pool = Box::new(ThreadPool::new(10, scheduler));
-    
+
     // 新建idle ，其入口为 Processor::idle_main
     let idle = Thread::new_box_thread(Processor::idle_main as usize, &CPU as *const Processor as usize);
     
@@ -91,6 +89,7 @@ pub fn init_cpu_test() {
             thread
         }
     );
+
 }
 
 /// 启动协程执行器

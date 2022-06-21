@@ -8,13 +8,15 @@ use lazy_static::*;
 use bitflags::*;
 use alloc::vec::Vec;
 use spin::Mutex;
-use super::File;
+use super::{File, Future, Pin};
+use alloc::boxed::Box;
 use crate::mm::UserBuffer;
+
 
 pub struct OSInode {
     readable: bool,
     writable: bool,
-    inner: Mutex<OSInodeInner>,
+    inner: Arc<Mutex<OSInodeInner>>,
 }
 
 pub struct OSInodeInner {
@@ -31,10 +33,10 @@ impl OSInode {
         Self {
             readable,
             writable,
-            inner: Mutex::new(OSInodeInner {
+            inner: Arc::new(Mutex::new(OSInodeInner {
                 offset: 0,
                 inode,
-            }),
+            })),
         }
     }
     pub fn read_all(&self) -> Vec<u8> {
@@ -155,5 +157,24 @@ impl File for OSInode {
             total_write_size += write_size;
         }
         total_write_size
+    }
+
+    fn aread(&self, buf: UserBuffer, space_id: usize, tid: usize, k: usize) -> Pin<Box<dyn Future<Output = ()> + 'static + Send + Sync>> {
+        async fn work(osi: Arc<Mutex<OSInodeInner>>, mut _buf: UserBuffer) {
+            let mut inner = osi.lock();
+            let mut total_read_size = 0usize;
+            for slice in _buf.buffers.iter_mut() {
+                let read_size = inner.inode.read_at(inner.offset, *slice);
+                if read_size == 0 {
+                    break;
+                }
+                inner.offset += read_size;
+                total_read_size += read_size;
+            }
+            print!("aread return");
+        }
+
+        let osi = self.inner.clone();
+        Box::pin(work(osi, buf))
     }
 }

@@ -162,7 +162,9 @@ pub fn take_current_task() -> Option<Arc<TaskControlBlock>> {
 }
 
 pub fn current_task() -> Option<Arc<TaskControlBlock>> {
-    PROCESSORS[hart_id()].current()
+    //PROCESSORS[hart_id()].current()
+    // 只从第0核取用户进程
+    PROCESSORS[0].current()
 }
 
 #[allow(unused)]
