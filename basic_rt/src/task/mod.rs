@@ -37,12 +37,10 @@ lazy_static!{
 
 #[no_mangle]
 pub fn thread_main_ex() {
-    println!(" > > > > > > > thread_main < < < < < < < ");
+    //println!(" > > > > > > > thread_main < < < < < < < ");
     // 计时, 每次取出开始协程时修改start, 取出结束协程tid == TEST_NUM 时修改end
-    let mut start = sys_get_time();
     let mut end = 0;
     let mut cnt = 0;
-    let mut times = Vec::new();
 
     let mut cbq = unsafe { &mut *(CBQ_VA as *mut CBQueue) };
 
@@ -80,21 +78,10 @@ pub fn thread_main_ex() {
                 // remove task
                 EXCUTOR.lock().del_task(&tid);
                 
-                if task.prio == 0 {
-                    end = sys_get_time();
-                    times.push((end - start) as usize);
-                }
             }
         }; 
         //if check_bitmap_should_yield() { sys_yield(); }
     }
-    for i in 0..times.len() {
-        print!("{} ", times[i]);
-        if (i + 1) % 50 == 0 {
-            println!("");
-        }
-    }
-    println!("");
 
     //println!("stats mean: {} , stats population_stddev {} ", stats.mean(), stats.population_stddev());
 

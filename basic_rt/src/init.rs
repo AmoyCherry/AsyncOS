@@ -50,6 +50,11 @@ pub fn check_callback(t: usize) -> bool {
     CBTID.lock().contains_tid(t)
 }
 
+#[no_mangle]
+pub fn wake_coroutine(tid: usize) {
+    EXCUTOR.lock().wake_coroutine(TaskId::get_tid_by_usize(tid));
+}
+
 
 #[alloc_error_handler]
 pub fn handle_alloc_error(layout: core::alloc::Layout) -> ! {

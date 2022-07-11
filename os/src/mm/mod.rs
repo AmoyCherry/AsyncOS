@@ -24,7 +24,7 @@ pub use memory_set::{
     KERNEL_SPACE, 
     MapPermission, 
     kernel_token, 
-    CBQ_BASE_PA, USER_CBQ_VA, SYS_CBQ_VA, USER_CBQ_VEC_PA, MAX_USER};
+    CBQ_BASE_PA, USER_CBQ_VA, SYS_CBQ_VA, USER_CBQ_VEC_PA, MAX_USER, USER_ENVIR_PA};
 pub use memory_set::remap_test;
 // pub use memory_set::SPACE_ID_SATP;
 

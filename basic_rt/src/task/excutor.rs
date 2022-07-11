@@ -68,9 +68,13 @@ impl Excutor {
     pub fn is_empty(&self) -> bool { self.task_num == 0 }
 
     pub fn wake_coroutine(&mut self, tid: TaskId) {
+        /* if let Some(w) = self.waker_cache.get_mut(&tid) {
+            w.wake_by_ref();
+        } */ 
         self.waker_cache.get_mut(&tid).unwrap().wake_by_ref();
     }
 }
+
 
 
 // ===================== WAKER =====================

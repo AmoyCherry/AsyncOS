@@ -89,7 +89,7 @@ pub fn rust_main(hart_id: usize) -> ! {
         println_hart!("run user task", hart_id);
         task::run_tasks();
     } else {
-        cpu_run();
+        //cpu_run();
     }
     
     
@@ -128,7 +128,7 @@ pub fn others_main(){
 
 pub fn send_ipi(){
     let hart_id = hart_id();
-    for i in 1..2 {
+    for i in 1..1 {
         debug!("[hart {}] Start hart[{}]", hart_id, i);
         let mask: usize = 1 << i;
         sbi::send_ipi(&mask as *const _ as usize);

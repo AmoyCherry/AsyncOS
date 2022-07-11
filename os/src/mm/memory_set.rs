@@ -71,6 +71,9 @@ pub const USER_CBQ_VEC_VA: usize = 0x8742_2000;
 
 pub const CBQ_VEC_PAGE_NUM: usize = 8;
 
+pub const USER_ENVIR_VA: usize = 0x8743_3000;
+pub const USER_ENVIR_PA: usize = 0x8750_0000;
+
 
 // lazy_static! {
 //     pub static ref SPACE_ID_SATP : Vec<usize> = {
@@ -198,6 +201,12 @@ impl MemorySet {
                     PTEFlags::R | PTEFlags::X|PTEFlags::W
                 );
             }
+            // coroutine interface
+            self.page_table.map(
+                VirtAddr::from(USER_ENVIR_PA + PAGE_SIZE * i).into(),
+                PhysAddr::from(USER_ENVIR_PA + PAGE_SIZE * i).into(), 
+                PTEFlags::R | PTEFlags::X|PTEFlags::W
+            );
             /* self.page_table.map(
                 VirtAddr::from(USER_CBQ_VEC_PA + PAGE_SIZE * i).into(),  
                 PhysAddr::from(USER_CBQ_VEC_PA + PAGE_SIZE * i).into(),  
@@ -259,6 +268,13 @@ impl MemorySet {
             VirtAddr::from(USER_CBQ_VA).into(), 
             PhysAddr::from(CBQ_BASE_PA + PAGE_SIZE * space_id).into(), 
             PTEFlags::R | PTEFlags::X  | PTEFlags::U |PTEFlags::W
+        );
+
+        // coroutine interface
+        self.page_table.map(
+            VirtAddr::from(USER_ENVIR_VA).into(),
+            PhysAddr::from(USER_ENVIR_PA + PAGE_SIZE * space_id).into(), 
+            PTEFlags::R | PTEFlags::X|PTEFlags::W
         );
 
         /* self.page_table.map(

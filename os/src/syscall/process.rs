@@ -167,6 +167,13 @@ pub fn sys_get_symbol_addr(symbol_name: *const u8) -> isize{
 
 }
 
+
+
+pub fn sys_shut_done() -> isize {
+    panic!("shut done!");
+    0
+}
+
 pub fn sys_get_satp() -> isize {
     current_user_token() as isize
 }

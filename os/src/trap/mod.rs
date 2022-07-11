@@ -13,7 +13,7 @@ use riscv::{addr::BitField, register::{
     sie,
     sstatus,
 }};
-use crate::syscall::syscall;
+use crate::{syscall::syscall, basic_rt::thread::cpu_run};
 use crate::task::{
     exit_current_and_run_next,
     suspend_current_and_run_next,
@@ -96,6 +96,7 @@ pub fn trap_handler() -> ! {
             set_next_trigger();
 
             //crate::task::update_bitmap();
+            cpu_run();
             
             // info!("[kernel] timer interrupt");
             suspend_current_and_run_next();

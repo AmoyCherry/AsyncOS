@@ -15,16 +15,22 @@ extern crate alloc;
 #[no_mangle]
 pub fn main() -> i32 {
 
-    println!("[user5 satp: {:#x}] main: Hello world from user mode program!", satp_read());
+    //println!("[user5 satp: {:#x}] main: Hello world from user mode program!", satp_read());
 
-    init_coroutine_interface();
-
+    let start = get_time();
     test_for_user();
+    let end = get_time();
 
-    println!("[user5 satp: {:#x}] main: end", satp_read());
+    println!(">>> {}", end - start);
 
+    //println!("[user5 satp: {:#x}] main: end", satp_read());
+    shut_done();
     0
 }
+
+const COROUTINE_NUM: usize = 
+4000
+;
 
 pub fn test_for_user(){
 
@@ -38,25 +44,25 @@ pub fn test_for_user(){
         let add_coroutine_with_prio : fn(future: Pin<Box<dyn Future<Output=()> + 'static + Send + Sync>> , usize) -> () 
             = core::mem::transmute(ADD_COROUTINE_WITH_PRIO_VA as usize);
 
-        const COROUTINE_NUM: usize = 140;
-        const TEST_NUM: usize = 100;
 
         //add_coroutine_with_prio(Box::pin(compute()), 0);
         for i in 0..COROUTINE_NUM {
             let ct = Counter::new(i + 1);
             async fn test(_ct: Counter) {
-                loop {
-                    _ct.await;
-                    write_cnt();
-                }
+                //println!("start {}", &_ct.cnt);
+                _ct.await;
+                write_cnt();
+                //println!("done {}", &_ct.cnt);
             }
-            add_coroutine_with_prio(Box::pin(test(ct)), 0);
+            add_coroutine_with_prio(Box::pin(test(ct)), 1);
         }
+
+
 
 
         // tid == test_num
         let ct = Counter::new(COROUTINE_NUM + 1);
-        async fn end_test(_ct: Counter, addr: usize, test_num: usize) {
+        /* async fn end_test(_ct: Counter, addr: usize, test_num: usize) {
             for _ in 0..test_num {
                 async fn begin_test() {  
                     set_cnter_zero();
@@ -70,7 +76,15 @@ pub fn test_for_user(){
                 write_cnt_without_wake();
             }
         }
-        add_coroutine_with_prio(Box::pin(end_test(ct, ADD_COROUTINE_WITH_PRIO_VA, TEST_NUM)), 0);
+        add_coroutine_with_prio(Box::pin(end_test(ct, ADD_COROUTINE_WITH_PRIO_VA, TEST_NUM)), 0); */
+
+        async fn end_test2(_ct: Counter) {
+            //println!("start {}", &_ct.cnt);
+            set_cnter_zero();
+            write_cnt();
+            //println!("done {}", &_ct.cnt);
+        }
+        add_coroutine_with_prio(Box::pin(end_test2(ct)), 0);
         
         coroutine_run();
     }

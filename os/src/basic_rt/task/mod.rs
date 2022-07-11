@@ -40,7 +40,7 @@ pub static mut CUR_COROUTINE: usize = 0;
 
 #[no_mangle]
 pub fn thread_main_ex() {
-    println!(" > > > > > > > [kernel] thread_main < < < < < < < ");
+    //println!(" > > > > > > > [kernel] thread_main < < < < < < < ");
 
     let mut cbq = unsafe { &mut *(CBQ_VA as *mut CBQueue) };
 
@@ -50,21 +50,22 @@ pub fn thread_main_ex() {
         //    let mut tids = cbq.pop();
         //    wakeup_all(&mut tids); 
         //}
-
+        //println!("kernel thread_main");
         let tid;
         let task;
         let waker;
         // get EXCUTOR lock
         {
             let mut ex = EXCUTOR.lock();
-            if ex.is_empty() { continue; }
+            //if ex.is_empty() { continue; }
+            if ex.empty_queue() { break; }
 
             let tid_wrap = ex.pop();
-            if tid_wrap.is_none() { continue; }
+            if tid_wrap.is_none() { break; }
             tid = tid_wrap.unwrap();
 
             let top = ex.get_task(&tid);
-            if top.is_none() { continue; }
+            if top.is_none() { break; }
             task = top.unwrap().clone();
             
             waker = ex.get_waker(tid, task.prio);

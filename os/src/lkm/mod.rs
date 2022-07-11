@@ -69,7 +69,7 @@ pub fn get_symbol_addr_from_elf(file_name: &str, symbol_name: &str) -> usize{
     for sym  in symbol_table(&elf){
         let name = sym.get_name(&elf);
         if name.unwrap() == symbol_name{
-            // println!("name {:?}  value:{:#x?}", name, sym.value());
+            //println!("name {:?}  value:{:#x?}", name, sym.value());
             entry = sym.value() as usize;
         }
     }

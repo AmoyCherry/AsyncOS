@@ -19,6 +19,7 @@ const SYSCALL_GET_SATP: usize = 403;
 
 const ASYNC_SYSCALL_READ: usize = 501;
 const ASYNC_SYSCALL_WRITE: usize = 502;
+pub const SYSCALL_SHUT_DONE: usize = 555;
 
 mod fs;
 pub mod process;
@@ -48,6 +49,7 @@ pub fn syscall(syscall_id: usize, args: [usize; 6]) -> isize {
         SYSCALL_GET_SATP => sys_get_satp(),
         ASYNC_SYSCALL_READ => async_sys_read(args[0], args[1] as *const u8, args[2], args[3], args[4], args[5]),
         ASYNC_SYSCALL_WRITE => async_sys_write(args[0], args[1] as *const u8, args[2], args[3], args[4], args[5]),
+        SYSCALL_SHUT_DONE => sys_shut_done(),
 
         SYSCALL_DO_YIELD => sys_do_yield(args[0]),
         SYSCALL_GET_SYMBOL_ADDR=> sys_get_symbol_addr(args[0] as *const u8),

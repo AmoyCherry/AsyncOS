@@ -54,7 +54,7 @@ pub fn set_cnter_zero() {
 
 #[derive(Clone, Copy)]
 pub struct Counter {
-    cnt: usize,
+    pub cnt: usize,
 }
 
 impl Counter {

@@ -22,11 +22,11 @@ extern crate bitflags;
 
 use syscall::*;
 use buddy_system_allocator::LockedHeap;
-use alloc::vec::Vec;
+use alloc::{vec::Vec};
 pub use test_lib::compute;
 
 //const USER_HEAP_SIZE: usize = 0x80_0000;
-const USER_HEAP_SIZE: usize = 0xFF_0000;
+const USER_HEAP_SIZE: usize = 0x200_0000;
 
 static mut HEAP_SPACE: [u8; USER_HEAP_SIZE] = [0; USER_HEAP_SIZE];
 
@@ -64,7 +64,8 @@ pub extern "C" fn _start(argc: usize, argv: usize) -> ! {
 
     unsafe{asm!("mv {}, tp", out(reg) space_id, options(nomem, nostack));}
 
-    // println!(" space_id : {:#x}", space_id);
+    //println!(" space_id : {:#x}", space_id);
+    init_coroutine_interface();
     exit(main(argc, v.as_slice()));
 }
 
@@ -94,7 +95,9 @@ pub fn read(fd: usize, buf: &mut [u8]) -> isize { sys_read(fd, buf) }
 pub fn write(fd: usize, buf: &[u8]) -> isize { sys_write(fd, buf) }
 pub fn exit(exit_code: i32) -> ! { sys_exit(exit_code); }
 pub fn yield_() -> isize { sys_yield() }
-pub fn get_time() -> isize { sys_get_time() }
+pub fn get_time() -> isize { 
+    sys_get_time() 
+}
 pub fn getpid() -> isize { sys_getpid() }
 pub fn fork() -> isize { sys_fork() }
 pub fn exec(path: &str, args: &[*const u8]) -> isize { sys_exec(path, args) }
@@ -130,6 +133,10 @@ pub fn get_symbol_addr(name: &str) -> usize{
     sys_get_symbol_addr(name) as usize
 }
 
+pub fn shut_done() {
+    sys_shut_done();
+}
+
 
 // ==================== SEARCH FOR COROUTINE INTERFACE ====================
 
@@ -156,12 +163,11 @@ pub fn init_coroutine_interface() {
         //init_cpu = core::mem::transmute(init_cpu_addr as usize);
         COROUTINE_RUN_VA = get_symbol_addr("cpu_run\0") as usize    - 0x1000000;
         ADD_COROUTINE_WITH_PRIO_VA = get_symbol_addr("add_user_task_with_priority\0") as usize   - 0x1000000;
-        //WAKE_COROUTINE_VA = get_symbol_addr("wake_coroutine\0") as usize - 0x1000000;
+        WAKE_COROUTINE_VA = get_symbol_addr("wake_coroutine\0") as usize - 0x1000000;
         CHECK_CALLBACK = get_symbol_addr("check_callback\0") as usize - 0x1000000;
     }
 
     init_environment();
-    //init_cpu();
 }
 
 

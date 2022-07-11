@@ -7,7 +7,7 @@ mod pid;
 mod pool;
 mod bitmap;
 
-use crate::fs::{open_file, OpenFlags};
+use crate::{fs::{open_file, OpenFlags}, config::PAGE_SIZE};
 use switch::__switch;
 pub use task::{TaskControlBlock, TaskStatus};
 use alloc::{sync::Arc, string::ToString};
@@ -116,6 +116,7 @@ pub fn add_user_test(){
             let v = inode.unwrap().read_all();
             TaskControlBlock::new(v.as_slice(), i as usize)
         });
+
         add_task(task.clone());
         drop(task);
     }

@@ -17,6 +17,7 @@ const SYSCALL_GET_SYMBOL_ADDR: usize = 301;
 pub const SYSCALL_GET_SATP: usize = 403;
 pub const ASYNC_SYSCALL_READ: usize = 501;
 pub const ASYNC_SYSCALL_WRITE: usize = 502;
+pub const SYSCALL_SHUT_DONE: usize = 555;
 
 fn syscall(id: usize, args: [usize; 6]) -> isize {
     let mut ret: isize;
@@ -29,6 +30,10 @@ fn syscall(id: usize, args: [usize; 6]) -> isize {
         );
     }
     ret
+}
+
+pub fn sys_shut_done() -> isize {
+    syscall(SYSCALL_SHUT_DONE, [0, 0, 0, 0, 0, 0])
 }
 
 pub fn sys_dup(fd: usize) -> isize {

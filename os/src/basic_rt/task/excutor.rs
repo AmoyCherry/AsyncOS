@@ -67,6 +67,8 @@ impl Excutor {
 
     pub fn is_empty(&self) -> bool { self.task_num == 0 }
 
+    pub fn empty_queue(&self) -> bool { self.task_queue.lock().queue.len() == 0 }
+
     pub fn wake_coroutine(&mut self, tid: TaskId) {
         self.waker_cache.get_mut(&tid).unwrap().wake_by_ref();
     }
